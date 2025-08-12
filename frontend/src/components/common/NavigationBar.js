@@ -4,6 +4,7 @@ import { LinkContainer } from 'react-router-bootstrap';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../../store/authSlice';
+import LogoutButton from './LogoutButton';
 
 const NavigationBar = () => {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
@@ -98,8 +99,8 @@ const NavigationBar = () => {
                   <NavDropdown.Item>Profile Settings</NavDropdown.Item>
                 </LinkContainer>
                 <NavDropdown.Divider />
-                <NavDropdown.Item onClick={handleLogout}>
-                  Logout
+                <NavDropdown.Item>
+                  <LogoutButton />
                 </NavDropdown.Item>
               </NavDropdown>
             ) : (

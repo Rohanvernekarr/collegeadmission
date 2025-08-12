@@ -44,6 +44,28 @@ class LoginView(generics.GenericAPIView):
             'access': str(refresh.access_token),
         })
 
+class AdminLoginView(LoginView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        user = self.get_serializer().validated_data['user']
+        if user.role != 'admin':
+            return Response(
+                {'error': 'Invalid credentials'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        return response
+
+class OfficerLoginView(LoginView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        user = self.get_serializer().validated_data['user']
+        if user.role != 'officer':
+            return Response(
+                {'error': 'Invalid credentials'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        return response
+
 class ProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]

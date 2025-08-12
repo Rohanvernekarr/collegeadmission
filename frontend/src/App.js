@@ -10,6 +10,8 @@ import { store } from "./store/store";
 import NavigationBar from "./components/common/NavigationBar";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
+import AdminLogin from "./components/auth/AdminLogin";
+import OfficerLogin from "./components/auth/OfficerLogin";
 import Dashboard from "./components/dashboard/Dashboard";
 import ProgramList from "./components/programs/ProgramList";
 import ProgramDetail from "./components/programs/ProgramDetail";
@@ -34,6 +36,8 @@ function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/programs" />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/officer/login" element={<OfficerLogin />} />
             <Route path="/register" element={<Register />} />
             <Route path="/programs" element={<ProgramList />} />
             <Route path="/programs/:id" element={<ProgramDetail />} />

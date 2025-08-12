@@ -12,8 +12,7 @@ const Register = () => {
     last_name: '',
     phone_number: '',
     password: '',
-    password_confirm: '',
-    role: 'applicant'
+    password_confirm: ''
   });
 
   const dispatch = useDispatch();
@@ -42,7 +41,7 @@ const Register = () => {
       alert("Passwords don't match!");
       return;
     }
-    dispatch(register(formData));
+    dispatch(register({ ...formData, role: 'applicant' }));
   };
 
   return (
@@ -132,19 +131,6 @@ const Register = () => {
                     onChange={handleChange}
                     placeholder="Enter phone number"
                   />
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                  <Form.Label>Role</Form.Label>
-                  <Form.Select
-                    name="role"
-                    value={formData.role}
-                    onChange={handleChange}
-                  >
-                    <option value="applicant">Applicant</option>
-                    <option value="admission_officer">Admission Officer</option>
-                    <option value="admin">Admin</option>
-                  </Form.Select>
                 </Form.Group>
 
                 <Row>
