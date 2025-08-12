@@ -25,6 +25,8 @@ cd collegeadmissionportal
 1. Create and activate a virtual environment:
 
 ```bash
+cd backend
+
 # Create virtual environment
 python -m venv venv
 
