@@ -82,6 +82,16 @@ class ApplicationSubmitView(generics.UpdateAPIView):
         except Application.DoesNotExist:
             return Response({'error': 'Application not found'}, status=404)
 
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def has_applied(request, program_id: int):
+    """Return whether the current user has already applied to the given program."""
+    user = request.user
+    if user.role != 'applicant':
+        return Response({'has_applied': False})
+    exists = Application.objects.filter(user=user, program_id=program_id).exists()
+    return Response({'has_applied': exists})
+
 class DocumentUploadView(generics.CreateAPIView):
     serializer_class = ApplicationDocumentSerializer
     permission_classes = [permissions.IsAuthenticated]

@@ -3,6 +3,8 @@ import { Container, Row, Col, Card, Button, Badge, Alert, ListGroup, Modal, Form
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import applicationService from '../../services/applicationService';
+import PageHeader from '../ui/PageHeader';
+import Loader from '../ui/Loader';
 
 const ApplicationDetail = () => {
   const [application, setApplication] = useState(null);
@@ -103,10 +105,7 @@ const ApplicationDetail = () => {
   if (loading) {
     return (
       <Container className="mt-4">
-        <div className="text-center">
-          <Spinner animation="border" />
-          <p>Loading application...</p>
-        </div>
+        <Loader message="Loading application..." />
       </Container>
     );
   }
@@ -124,13 +123,11 @@ const ApplicationDetail = () => {
 
   return (
     <Container className="mt-4">
-      <Row className="mb-4">
-        <Col>
-          <Button variant="outline-secondary" onClick={() => navigate('/applications')}>
-            ← Back to Applications
-          </Button>
-        </Col>
-      </Row>
+      <PageHeader
+        title={`Application #${application?.application_number}`}
+        subtitle={application?.program?.name}
+        actions={<Button variant="outline-secondary" onClick={() => navigate('/applications')}>← Back to Applications</Button>}
+      />
 
       {error && (
         <Alert variant="danger" className="mb-4">
@@ -277,27 +274,26 @@ const ApplicationDetail = () => {
                 <h5>Status History</h5>
               </Card.Header>
               <Card.Body>
-                <ListGroup variant="flush">
+                <div className="timeline">
                   {application.status_history.map((history, index) => (
-                    <ListGroup.Item key={index} className="px-0">
-                      <Row>
-                        <Col>
-                          <strong>
-                            {history.previous_status.replace('_', ' ').toUpperCase()} → {' '}
-                            {history.new_status.replace('_', ' ').toUpperCase()}
-                          </strong>
-                          <div className="small text-muted">
-                            By: {history.changed_by_name} | 
-                            Date: {new Date(history.changed_at).toLocaleString()}
-                          </div>
-                          {history.change_reason && (
-                            <div className="small">{history.change_reason}</div>
-                          )}
-                        </Col>
-                      </Row>
-                    </ListGroup.Item>
+                    <div key={index} className="timeline-item">
+                      <div className={`timeline-badge bg-${
+                        history.new_status === 'admitted' ? 'success' : history.new_status === 'rejected' ? 'danger' : 'primary'
+                      }`}></div>
+                      <div className="timeline-content">
+                        <div className="fw-semibold">
+                          {history.previous_status.replace('_', ' ').toUpperCase()} → {history.new_status.replace('_', ' ').toUpperCase()}
+                        </div>
+                        <div className="small text-muted">
+                          By: {history.changed_by_name} • {new Date(history.changed_at).toLocaleString()}
+                        </div>
+                        {history.change_reason && (
+                          <div className="small mt-1">{history.change_reason}</div>
+                        )}
+                      </div>
+                    </div>
                   ))}
-                </ListGroup>
+                </div>
               </Card.Body>
             </Card>
           )}

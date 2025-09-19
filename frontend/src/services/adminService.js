@@ -46,6 +46,11 @@ const adminService = {
     return response.data;
   },
 
+  verifyUser: async (id, isVerified) => {
+    const response = await api.post(`auth/admin/users/${id}/verify/`, { is_verified: isVerified });
+    return response.data;
+  },
+
   getUserStatistics: async () => {
     const response = await api.get('auth/admin/users/statistics/');
     return response.data;

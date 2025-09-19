@@ -1,4 +1,6 @@
-from rest_framework import generics, permissions, filters
+from rest_framework import generics, permissions, filters, status
+from rest_framework.exceptions import PermissionDenied, ValidationError
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -51,7 +53,6 @@ class ProgramUpdateView(generics.UpdateAPIView):
     def perform_update(self, serializer):
         # Only admin users can update programs
         if self.request.user.role != 'admin':
-            from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Only administrators can update programs")
         serializer.save()
 

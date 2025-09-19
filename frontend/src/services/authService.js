@@ -72,12 +72,17 @@ const authService = {
 
   logout: async () => {
     const refreshToken = localStorage.getItem('refresh_token');
-    if (refreshToken) {
-      await api.post('logout/', { refresh: refreshToken });
+    try {
+      if (refreshToken) {
+        await api.post('logout/', { refresh: refreshToken });
+      }
+    } catch (error) {
+      // Best-effort server logout; ignore errors and proceed to clear client state
+    } finally {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user');
     }
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
   },
 
   getCurrentUser: () => {

@@ -16,5 +16,6 @@ urlpatterns = [
     path('admin/users/create/', admin_views.CreateUserView.as_view(), name='admin-user-create'),
     path('admin/users/<int:pk>/', admin_views.UserDetailView.as_view(), name='admin-user-detail'),
     path('admin/users/<int:pk>/toggle-status/', admin_views.toggle_user_status, name='admin-user-toggle'),
+    path('admin/users/<int:pk>/verify/', admin_views.verify_user, name='admin-user-verify'),
     path('admin/users/statistics/', admin_views.user_statistics, name='admin-user-statistics'),
 ]

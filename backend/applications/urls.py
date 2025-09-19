@@ -8,4 +8,5 @@ urlpatterns = [
     path('<uuid:pk>/submit/', views.ApplicationSubmitView.as_view(), name='application-submit'),
     path('<uuid:pk>/status/', views.update_application_status, name='application-status-update'),
     path('documents/upload/', views.DocumentUploadView.as_view(), name='document-upload'),
+    path('has-applied/<int:program_id>/', views.has_applied, name='application-has-applied'),
 ]

@@ -26,6 +26,7 @@ export const register = createAsyncThunk(
 
 export const logout = createAsyncThunk('auth/logout', async () => {
   await authService.logout();
+  localStorage.removeItem('access_token');
 });
 
 const authSlice = createSlice({
@@ -77,6 +78,11 @@ const authSlice = createSlice({
       })
       // Logout
       .addCase(logout.fulfilled, (state) => {
+        state.user = null;
+        state.isAuthenticated = false;
+      })
+      .addCase(logout.rejected, (state) => {
+        // Even if server logout fails, clear client auth state
         state.user = null;
         state.isAuthenticated = false;
       });

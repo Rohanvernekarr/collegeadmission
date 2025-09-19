@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Badge, Alert, Table, Form, InputGroup, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Badge, Alert, Table, Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import applicationService from '../../services/applicationService';
+import PageHeader from '../ui/PageHeader';
+import Loader from '../ui/Loader';
+import EmptyState from '../ui/EmptyState';
 
 const ApplicationList = () => {
   const [applications, setApplications] = useState([]);
@@ -59,34 +62,20 @@ const ApplicationList = () => {
   if (loading) {
     return (
       <Container className="mt-4">
-        <div className="text-center">
-          <Spinner animation="border" />
-          <p>Loading applications...</p>
-        </div>
+        <Loader message="Loading applications..." />
       </Container>
     );
   }
 
   return (
     <Container className="mt-4">
-      <Row className="mb-4">
-        <Col>
-          <div className="d-flex justify-content-between align-items-center">
-            <div>
-              <h2>My Applications</h2>
-              <p className="text-muted">Track your college application status</p>
-            </div>
-            {user?.role === 'applicant' && (
-              <Button 
-                variant="primary" 
-                onClick={() => navigate('/programs')}
-              >
-                New Application
-              </Button>
-            )}
-          </div>
-        </Col>
-      </Row>
+      <PageHeader
+        title="My Applications"
+        subtitle="Track your college application status"
+        actions={user?.role === 'applicant' ? (
+          <Button variant="primary" onClick={() => navigate('/programs')}>New Application</Button>
+        ) : null}
+      />
 
       {error && (
         <Alert variant="danger" className="mb-4">
@@ -115,24 +104,9 @@ const ApplicationList = () => {
       </Row>
 
       {applications.length === 0 ? (
-        <Card>
-          <Card.Body className="text-center py-5">
-            <h5>No Applications Found</h5>
-            <p className="text-muted">
-              You haven't submitted any applications yet.
-            </p>
-            <Button 
-              variant="primary" 
-              onClick={() => navigate('/programs')}
-            >
-              Browse Programs
-            </Button>
-          </Card.Body>
-        </Card>
+        <EmptyState title="No applications yet" hint="Start a new application from the Programs page." />
       ) : filteredApplications.length === 0 ? (
-        <Alert variant="info">
-          No applications found for the selected filter.
-        </Alert>
+        <EmptyState title="No matching applications" hint="Try a different filter." />
       ) : (
         <Card>
           <Card.Body className="p-0">

@@ -3,21 +3,30 @@ import { Container, Row, Col, Card, Button, Badge, Alert, Spinner, ListGroup } f
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import programService from '../../services/programService';
+import applicationService from '../../services/applicationService';
+import PageHeader from '../ui/PageHeader';
+import Loader from '../ui/Loader';
 
 const ProgramDetail = () => {
   const [program, setProgram] = useState(null);
   const [requiredDocuments, setRequiredDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [hasApplied, setHasApplied] = useState(false);
 
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    fetchProgramDetails();
-    fetchRequiredDocuments();
-  }, [id]);
+    // fetch program/details and hasApplied each time program id or user changes
+    const run = async () => {
+      await Promise.all([fetchProgramDetails(), fetchRequiredDocuments()]);
+      await checkHasApplied();
+    };
+    run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, user]);
 
   const fetchProgramDetails = async () => {
     try {
@@ -41,6 +50,20 @@ const ProgramDetail = () => {
     }
   };
 
+  const checkHasApplied = async () => {
+    try {
+      if (!user || user.role !== 'applicant') {
+        setHasApplied(false);
+        return;
+      }
+      const res = await applicationService.hasApplied(id);
+      setHasApplied(!!res?.has_applied);
+    } catch (e) {
+      // Fail open: allow apply button if check fails
+      setHasApplied(false);
+    }
+  };
+
   const handleApplyClick = () => {
     if (!user) {
       navigate('/login');
@@ -49,6 +72,9 @@ const ProgramDetail = () => {
     if (user.role !== 'applicant') {
       alert('Only applicants can apply for programs');
       return;
+    }
+    if (hasApplied) {
+      return; // Button disabled; extra guard
     }
     navigate(`/apply/${program.id}`);
   };
@@ -63,10 +89,7 @@ const ProgramDetail = () => {
   if (loading) {
     return (
       <Container className="mt-4">
-        <div className="text-center">
-          <Spinner animation="border" />
-          <p>Loading program details...</p>
-        </div>
+        <Loader message="Loading program details..." />
       </Container>
     );
   }
@@ -84,32 +107,22 @@ const ProgramDetail = () => {
 
   return (
     <Container className="mt-4">
-      <Row className="mb-4">
-        <Col>
-          <Button variant="outline-secondary" onClick={() => navigate('/programs')}>
-            ← Back to Programs
-          </Button>
-        </Col>
-      </Row>
+      <PageHeader
+        title={program.name}
+        subtitle={program?.department?.name}
+        actions={<Button variant="outline-secondary" onClick={() => navigate('/programs')}>← Back to Programs</Button>}
+      />
 
       <Row>
         <Col lg={8}>
           <Card className="mb-4">
             <Card.Body>
-              <div className="d-flex justify-content-between align-items-start mb-3">
-                <div>
-                  <Card.Title className="h3">{program.name}</Card.Title>
-                  <Card.Subtitle className="h5 text-muted">
-                    {program.department.name}
-                  </Card.Subtitle>
-                </div>
-                <div>
-                  {program.is_application_open ? (
-                    <Badge bg="success" className="fs-6">Application Open</Badge>
-                  ) : (
-                    <Badge bg="danger" className="fs-6">Application Closed</Badge>
-                  )}
-                </div>
+              <div className="d-flex justify-content-end mb-3">
+                {program.is_application_open ? (
+                  <Badge bg="success" className="fs-6">Application Open</Badge>
+                ) : (
+                  <Badge bg="danger" className="fs-6">Application Closed</Badge>
+                )}
               </div>
 
               <Row className="mb-4">
@@ -210,8 +223,11 @@ const ProgramDetail = () => {
                   <p className="text-muted">
                     Ready to start your application? Click below to begin.
                   </p>
-                  <Button variant="primary" size="lg" onClick={handleApplyClick}>
-                    Apply Now
+                  {hasApplied ? (
+                    <Alert variant="info">You have already applied to this program.</Alert>
+                  ) : null}
+                  <Button variant="primary" size="lg" onClick={handleApplyClick} disabled={hasApplied}>
+                    {hasApplied ? 'Already Applied' : 'Apply Now'}
                   </Button>
                 </div>
               )}

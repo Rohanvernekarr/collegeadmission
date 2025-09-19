@@ -3,6 +3,10 @@ import { Container, Row, Col, Card, Button, Table, Modal, Form, Alert, Spinner, 
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import programService from '../../services/programService';
+import PageHeader from '../ui/PageHeader';
+import Loader from '../ui/Loader';
+import EmptyState from '../ui/EmptyState';
+import { useToast } from '../ui/ToastProvider';
 
 const ProgramManagement = () => {
   const [programs, setPrograms] = useState([]);
@@ -39,6 +43,7 @@ const ProgramManagement = () => {
 
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
+  const toast = useToast();
 
   useEffect(() => {
     if (user?.role !== 'admin') {
@@ -131,38 +136,47 @@ const ProgramManagement = () => {
       return;
     }
 
-    setFormData({
-      name: program.name,
-      code: program.code,
-      department_id: program.department.id,
-      program_type: program.program_type,
-      duration_years: program.duration_years,
-      duration_semesters: program.duration_semesters,
-      description: program.description,
-      intake_capacity: program.intake_capacity,
-      fees_per_semester: program.fees_per_semester,
-      application_fee: program.application_fee,
-      min_percentage: program.min_percentage,
-      eligibility_criteria: program.eligibility_criteria,
-      application_start_date: program.application_start_date?.split('T')[0] || '',
-      application_end_date: program.application_end_date?.split('T')[0] || '',
-      status: program.status
-    });
-    
-    // Fetch existing document requirements
     try {
-    const docs = await programService.getProgramDocuments(program.id);
-    setDocumentRequirements(docs || []);
-  } catch (error) {
-    console.error('Error fetching document requirements:', error);
-    setDocumentRequirements([]);
-  }
-  
-  setEditingProgram(program);
-  setError(null);
-  setSuccess(null);
-  setShowModal(true);
-};
+      // IMPORTANT: Program list items don't include full department object;
+      // fetch full program details before editing
+      const fullProgram = await programService.getProgram(program.id);
+
+      setFormData({
+        name: fullProgram.name,
+        code: fullProgram.code,
+        department_id: fullProgram.department?.id || '',
+        program_type: fullProgram.program_type,
+        duration_years: fullProgram.duration_years,
+        duration_semesters: fullProgram.duration_semesters,
+        description: fullProgram.description,
+        intake_capacity: fullProgram.intake_capacity,
+        fees_per_semester: fullProgram.fees_per_semester,
+        application_fee: fullProgram.application_fee,
+        min_percentage: fullProgram.min_percentage,
+        eligibility_criteria: fullProgram.eligibility_criteria,
+        application_start_date: fullProgram.application_start_date?.split('T')[0] || '',
+        application_end_date: fullProgram.application_end_date?.split('T')[0] || '',
+        status: fullProgram.status
+      });
+
+      // Fetch existing document requirements
+      try {
+        const docs = await programService.getProgramDocuments(program.id);
+        setDocumentRequirements(docs || []);
+      } catch (error) {
+        console.error('Error fetching document requirements:', error);
+        setDocumentRequirements([]);
+      }
+
+      setEditingProgram(fullProgram);
+      setError(null);
+      setSuccess(null);
+      setShowModal(true);
+    } catch (e) {
+      console.error('Failed to load program details for editing:', e);
+      setError('Failed to load program details. Please try again.');
+    }
+  };
 
   const handleDeleteProgram = (program) => {
     setDeletingProgram(program);
@@ -176,6 +190,7 @@ const ProgramManagement = () => {
     try {
       await programService.deleteProgram(deletingProgram.id);
       setSuccess(`Program "${deletingProgram.name}" deleted successfully!`);
+      toast.success(`Deleted program: ${deletingProgram.name}`);
       setShowDeleteModal(false);
       setDeletingProgram(null);
       setTimeout(() => {
@@ -190,6 +205,7 @@ const ProgramManagement = () => {
       }
       
       setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -294,9 +310,11 @@ const ProgramManagement = () => {
       if (editingProgram) {
         program = await programService.updateProgram(editingProgram.id, submitData);
         setSuccess('Program updated successfully!');
+        toast.success('Program updated successfully');
       } else {
         program = await programService.createProgram(submitData);
         setSuccess('Program created successfully!');
+        toast.success('Program created successfully');
       }
 
       // Handle document requirements
@@ -346,6 +364,7 @@ const ProgramManagement = () => {
       }
       
       setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -364,29 +383,18 @@ const ProgramManagement = () => {
   if (loading) {
     return (
       <Container className="mt-4">
-        <div className="text-center">
-          <Spinner animation="border" />
-          <p>Loading programs...</p>
-        </div>
+        <Loader message="Loading programs..." />
       </Container>
     );
   }
 
   return (
     <Container className="mt-4">
-      <Row className="mb-4">
-        <Col>
-          <div className="d-flex justify-content-between align-items-center">
-            <div>
-              <h2>Program Management</h2>
-              <p className="text-muted">Create, edit, and manage academic programs</p>
-            </div>
-            <Button variant="primary" onClick={handleCreateProgram}>
-              + Create New Program
-            </Button>
-          </div>
-        </Col>
-      </Row>
+      <PageHeader
+        title="Program Management"
+        subtitle="Create, edit, and manage academic programs"
+        actions={<Button variant="primary" onClick={handleCreateProgram}>+ Create New Program</Button>}
+      />
 
       {error && !showModal && (
         <Alert variant="danger" className="mb-4">
@@ -402,6 +410,9 @@ const ProgramManagement = () => {
 
       <Card>
         <Card.Body className="p-0">
+          {programs.length === 0 ? (
+            <EmptyState title="No programs yet" hint="Create your first program to get started." />
+          ) : (
           <Table responsive hover className="mb-0">
             <thead className="table-light">
               <tr>
@@ -493,6 +504,7 @@ const ProgramManagement = () => {
               )}
             </tbody>
           </Table>
+          )}
         </Card.Body>
       </Card>
 

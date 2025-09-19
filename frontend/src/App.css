@@ -3,6 +3,22 @@
   background-color: #f8f9fa;
 }
 
+.navbar-gradient {
+  background: linear-gradient(90deg, #d6d8dc 0%, #c7cde0 100%);
+}
+
+.navbar-gradient .nav-link,
+.navbar-gradient .navbar-brand,
+.navbar-gradient .dropdown-toggle,
+.navbar-gradient .dropdown-item {
+  color: #000 !important;
+}
+
+.navbar-gradient .nav-link:hover,
+.navbar-gradient .dropdown-item:hover {
+  opacity: 0.9;
+}
+
 .card {
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   border: none;
@@ -48,6 +64,22 @@
   font-size: 0.75em;
   padding: 6px 12px;
   border-radius: 15px;
+}
+
+.table thead th {
+  font-weight: 600;
+  color: #495057;
+}
+
+.list-group-item {
+  border: 1px solid #eef1f4;
+  border-radius: 8px !important;
+  margin-bottom: 8px;
+}
+
+.btn-outline-primary:hover {
+  background-color: #0d6efd;
+  color: #fff;
 }
 
 /* Dashboard specific styles */

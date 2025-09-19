@@ -67,12 +67,13 @@ class ApplicationListSerializer(serializers.ModelSerializer):
     """Simplified serializer for application listings"""
     program_name = serializers.CharField(source='program.name', read_only=True)
     department_name = serializers.CharField(source='program.department.name', read_only=True)
+    program = serializers.IntegerField(source='program.id', read_only=True)
     application_number = serializers.ReadOnlyField()
     is_complete = serializers.ReadOnlyField()
     
     class Meta:
         model = Application
         fields = [
-            'id', 'application_number', 'program_name', 'department_name',
+            'id', 'application_number', 'program', 'program_name', 'department_name',
             'status', 'is_complete', 'submitted_at', 'created_at', 'updated_at'
         ]

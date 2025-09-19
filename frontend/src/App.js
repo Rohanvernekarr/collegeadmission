@@ -26,14 +26,16 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import UserManagement from "./components/admin/UserManagement";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
+import ToastProvider from "./components/ui/ToastProvider";
 
 function App() {
   return (
     <Provider store={store}>
       <Router>
-        <div className="App">
-          <NavigationBar />
-          <Routes>
+        <ToastProvider>
+          <div className="App">
+            <NavigationBar />
+            <Routes>
             <Route path="/" element={<Navigate to="/programs" />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin/login" element={<AdminLogin />} />
@@ -117,8 +119,9 @@ function App() {
                 </ProtectedRoute>
               }
             />
-          </Routes>
-        </div>
+            </Routes>
+          </div>
+        </ToastProvider>
       </Router>
     </Provider>
   );

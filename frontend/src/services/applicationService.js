@@ -64,6 +64,12 @@ const applicationService = {
     const response = await api.post(`${id}/status/`, statusData);
     return response.data;
   },
+
+  // Check if current user has already applied to a program
+  hasApplied: async (programId) => {
+    const response = await api.get(`has-applied/${programId}/`);
+    return response.data;
+  },
 };
 
 export default applicationService;

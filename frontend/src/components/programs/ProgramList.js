@@ -3,6 +3,10 @@ import { Container, Row, Col, Card, Button, Form, InputGroup, Badge, Alert, Spin
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import programService from '../../services/programService';
+import applicationService from '../../services/applicationService';
+import PageHeader from '../ui/PageHeader';
+import Loader from '../ui/Loader';
+import EmptyState from '../ui/EmptyState';
 
 const ProgramList = () => {
   const [programs, setPrograms] = useState([]);
@@ -14,6 +18,7 @@ const ProgramList = () => {
     department: '',
     program_type: '',
   });
+  const [appliedProgramIds, setAppliedProgramIds] = useState(new Set());
 
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
@@ -22,6 +27,25 @@ const ProgramList = () => {
     fetchDepartments();
     fetchPrograms();
   }, []);
+
+  // Fetch user's applications to disable Apply where relevant
+  useEffect(() => {
+    const loadApplied = async () => {
+      try {
+        if (!user || user.role !== 'applicant') {
+          setAppliedProgramIds(new Set());
+          return;
+        }
+        const data = await applicationService.getApplications();
+        const items = Array.isArray(data) ? data : (Array.isArray(data?.results) ? data.results : []);
+        const ids = new Set(items.map(a => a.program).filter(Boolean));
+        setAppliedProgramIds(ids);
+      } catch (e) {
+        setAppliedProgramIds(new Set());
+      }
+    };
+    loadApplied();
+  }, [user, programs]);
 
   useEffect(() => {
     fetchPrograms();
@@ -107,6 +131,9 @@ const ProgramList = () => {
       alert('Only applicants can apply for programs');
       return;
     }
+    if (appliedProgramIds.has(program.id)) {
+      return; // already applied
+    }
     navigate(`/apply/${program.id}`);
   };
 
@@ -129,12 +156,7 @@ const ProgramList = () => {
 
   return (
     <Container className="mt-4">
-      <Row className="mb-4">
-        <Col>
-          <h2>Available Programs</h2>
-          <p className="text-muted">Browse and apply for college programs</p>
-        </Col>
-      </Row>
+      <PageHeader title="Available Programs" subtitle="Browse and apply for college programs" />
 
       {/* Filters */}
       <Row className="mb-4">
@@ -196,19 +218,12 @@ const ProgramList = () => {
       )}
 
       {loading ? (
-        <div className="text-center">
-          <Spinner animation="border" />
-          <p>Loading programs...</p>
-        </div>
+        <Loader message="Loading programs..." />
       ) : (
         <Row>
           {!Array.isArray(programs) || programs.length === 0 ? (
             <Col>
-              <Alert variant="info">
-                No programs found matching your criteria.
-                <br />
-                <small>Programs data type: {Array.isArray(programs) ? 'array' : typeof programs}</small>
-              </Alert>
+              <EmptyState title="No programs found" hint="Try adjusting filters or check back later." />
             </Col>
           ) : (
             programs.map(program => (
@@ -257,10 +272,11 @@ const ProgramList = () => {
                       </Button>
                       {user?.role === 'applicant' && program.is_application_open && program.available_seats > 0 && (
                         <Button
-                          variant="primary"
+                          variant={appliedProgramIds.has(program.id) ? 'outline-secondary' : 'primary'}
                           onClick={() => handleApplyClick(program)}
+                          disabled={appliedProgramIds.has(program.id)}
                         >
-                          Apply Now
+                          {appliedProgramIds.has(program.id) ? 'Already Applied' : 'Apply Now'}
                         </Button>
                       )}
                     </div>

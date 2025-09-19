@@ -92,3 +92,21 @@ def user_statistics(request):
     }
     
     return Response(stats)
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def verify_user(request, pk):
+    """Admin sets/unsets a user's verification status"""
+    if request.user.role != 'admin':
+        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+        user = User.objects.get(pk=pk)
+        is_verified = request.data.get('is_verified')
+        if is_verified is None:
+            return Response({'error': 'is_verified is required (true/false)'}, status=status.HTTP_400_BAD_REQUEST)
+        user.is_verified = bool(is_verified)
+        user.save(update_fields=['is_verified'])
+        return Response({'message': 'Verification status updated', 'is_verified': user.is_verified})
+    except User.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
