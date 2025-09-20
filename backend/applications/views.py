@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils import timezone
 from django.db import transaction
+import logging
 from .models import Application, ApplicationDocument, ApplicationStatusHistory
 from .serializers import ApplicationSerializer, ApplicationListSerializer, ApplicationDocumentSerializer
 
@@ -97,26 +98,68 @@ class DocumentUploadView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
     
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        # Include resolved application in context if available
+        application = getattr(self, '_application', None)
+        if application is not None:
+            context['application'] = application
+        return context
+    
     def create(self, request, *args, **kwargs):
         application_id = request.data.get('application')
-        
+        document_type = request.data.get('document_type')
+
+        # Basic validation for required fields
+        if not application_id:
+            return Response({'application': ['This field is required.']}, status=status.HTTP_400_BAD_REQUEST)
+        if not document_type:
+            return Response({'document_type': ['This field is required.']}, status=status.HTTP_400_BAD_REQUEST)
+        if 'file' not in request.FILES:
+            return Response({'file': ['No file provided.']}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
             application = Application.objects.get(id=application_id, user=request.user)
-            
+
             if application.status not in ['draft']:
                 return Response(
-                    {'error': 'Documents cannot be uploaded after submission'}, 
+                    {'error': 'Documents cannot be uploaded after submission'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
         except Application.DoesNotExist:
             return Response({'error': 'Application not found'}, status=404)
-        
-        return super().create(request, *args, **kwargs)
+
+        # Stash application for use in perform_create
+        self._application = application
+
+        # IMPORTANT: Build serializer with data including resolved application and file
+        data = request.data.copy()
+        data['application'] = str(application.id)
+        if 'file' in request.FILES:
+            data['file'] = request.FILES['file']
+        serializer = self.get_serializer(data=data)
+        if not serializer.is_valid():
+            logging.error("Document upload validation failed: %s", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
     def perform_create(self, serializer):
         file_obj = self.request.FILES['file']
+        # Retrieve application set in create(); fallback to fetching if not present
+        application = getattr(self, '_application', None)
+        if application is None:
+            application_id = self.request.data.get('application')
+            try:
+                application = Application.objects.get(id=application_id, user=self.request.user)
+            except Application.DoesNotExist:
+                # In case of unexpected state; let serializer raise if required FK missing
+                application = None
+
         serializer.save(
+            application=application,
             original_filename=file_obj.name,
             file_size=file_obj.size
         )

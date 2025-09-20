@@ -11,6 +11,7 @@ const ApplicationReview = () => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [statusUpdate, setStatusUpdate] = useState({ status: '', reason: '' });
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('pending');
@@ -217,9 +218,19 @@ const ApplicationReview = () => {
                           <Button
                             variant="outline-info"
                             size="sm"
-                            onClick={() => {
-                              setSelectedApplication(application);
-                              setShowDocumentModal(true);
+                            onClick={async () => {
+                              setLoadingDocuments(true);
+                              try {
+                                // Fetch full application detail to include documents
+                                const fullApp = await applicationService.getApplication(application.id);
+                                setSelectedApplication(fullApp);
+                                setShowDocumentModal(true);
+                              } catch (e) {
+                                setSelectedApplication(application);
+                                setShowDocumentModal(true);
+                              } finally {
+                                setLoadingDocuments(false);
+                              }
                             }}
                           >
                             Documents
@@ -424,7 +435,11 @@ const ApplicationReview = () => {
                 <strong>Student:</strong> {selectedApplication.user_name}
               </div>
               
-              {selectedApplication.documents?.length > 0 ? (
+              {loadingDocuments ? (
+                <div className="text-center my-3">
+                  <Spinner animation="border" size="sm" className="me-2" /> Loading documents...
+                </div>
+              ) : selectedApplication.documents?.length > 0 ? (
                 <Table responsive className="mb-0">
                   <thead>
                     <tr>
@@ -435,7 +450,9 @@ const ApplicationReview = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {selectedApplication.documents.map(doc => (
+                    {selectedApplication.documents.map(doc => {
+                      const fileUrl = doc.file && (doc.file.startsWith('http') ? doc.file : `http://localhost:8000${doc.file}`);
+                      return (
                       <tr key={doc.id}>
                         <td>
                           <strong>{doc.document_type_name}</strong>
@@ -445,14 +462,18 @@ const ApplicationReview = () => {
                         </td>
                         <td>
                           <div>
-                            <a 
-                              href={doc.file} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-decoration-none"
-                            >
-                              📄 {doc.original_filename}
-                            </a>
+                            {fileUrl ? (
+                              <a 
+                                href={fileUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-decoration-none"
+                              >
+                                📄 {doc.original_filename}
+                              </a>
+                            ) : (
+                              <span className="text-muted">No file URL</span>
+                            )}
                             <div className="small text-muted">
                               Size: {(doc.file_size / 1024 / 1024).toFixed(2)}MB
                             </div>
@@ -483,7 +504,7 @@ const ApplicationReview = () => {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    );})}
                   </tbody>
                 </Table>
               ) : (

@@ -51,11 +51,8 @@ const applicationService = {
 
   // Upload document
   uploadDocument: async (formData) => {
-    const response = await api.post('documents/upload/', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    // Do not set Content-Type manually; let axios set the correct boundary
+    const response = await api.post('documents/upload/', formData);
     return response.data;
   },
 

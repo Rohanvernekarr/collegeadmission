@@ -240,7 +240,9 @@ const ApplicationDetail = () => {
             <Card.Body>
               {application?.documents?.length > 0 ? (
                 <ListGroup variant="flush">
-                  {application.documents.map(doc => (
+                  {application.documents.map(doc => {
+                    const fileUrl = doc.file && (doc.file.startsWith('http') ? doc.file : `http://localhost:8000${doc.file}`);
+                    return (
                     <ListGroup.Item key={doc.id} className="px-0">
                       <Row className="align-items-center">
                         <Col>
@@ -252,14 +254,33 @@ const ApplicationDetail = () => {
                             Uploaded: {new Date(doc.uploaded_at).toLocaleDateString()}
                           </div>
                         </Col>
-                        <Col xs="auto">
+                        <Col xs="auto" className="d-flex align-items-center gap-2">
                           <Badge bg={doc.verified ? 'success' : 'warning'}>
                             {doc.verified ? 'Verified' : 'Under Review'}
                           </Badge>
+                          {fileUrl && (
+                            <>
+                              <a
+                                href={fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn btn-outline-primary btn-sm"
+                              >
+                                View
+                              </a>
+                              <a
+                                href={fileUrl}
+                                download
+                                className="btn btn-outline-secondary btn-sm"
+                              >
+                                Download
+                              </a>
+                            </>
+                          )}
                         </Col>
                       </Row>
                     </ListGroup.Item>
-                  ))}
+                  );})}
                 </ListGroup>
               ) : (
                 <p className="text-muted">No documents uploaded</p>

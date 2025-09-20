@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Form, Button, Alert, ListGroup, Badge, ProgressBar, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button, Alert, ListGroup,Modal, Badge, ProgressBar, Spinner } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import applicationService from '../../services/applicationService';
 import programService from '../../services/programService';
@@ -8,6 +8,8 @@ const DocumentUpload = () => {
   const [application, setApplication] = useState(null);
   const [requiredDocuments, setRequiredDocuments] = useState([]);
   const [uploadedDocuments, setUploadedDocuments] = useState([]);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+   const [submitting, setSubmitting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState({});
   const [uploading, setUploading] = useState({});
   const [error, setError] = useState(null);
@@ -43,6 +45,28 @@ const DocumentUpload = () => {
       ...prev,
       [documentTypeId]: file
     }));
+  };
+  const handleSubmitApplication = async () => {
+    setSubmitting(true);
+    try {
+      await applicationService.submitApplication(applicationId);
+      setShowSubmitModal(false);
+      await fetchApplicationDetails(); // Refresh data
+    } catch (error) {
+      let errorMessage = 'Failed to submit application';
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      }
+      setError(errorMessage);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR'
+    }).format(amount);
   };
 
   const handleFileUpload = async (documentTypeId) => {
@@ -344,12 +368,42 @@ const DocumentUpload = () => {
                 </Button>
                 
                 {application?.status === 'draft' && canSubmitApplication() && (
-                  <Button
-                    variant="success"
-                    onClick={() => navigate(`/applications/${applicationId}/submit`)}
-                  >
-                    Submit Application
-                  </Button>
+                  <Modal show={showSubmitModal} onHide={() => setShowSubmitModal(false)}>
+                  <Modal.Header closeButton>
+                    <Modal.Title>Submit Application</Modal.Title>
+                  </Modal.Header>
+                  <Modal.Body>
+                    <Alert variant="warning">
+                      <strong>Are you sure you want to submit this application?</strong>
+                    </Alert>
+                    <p>
+                      Once submitted, you will not be able to make changes to your application.
+                      Please ensure all information is correct and all required documents are uploaded.
+                    </p>
+                    <p>
+                      <strong>Application Fee:</strong> {formatCurrency(application?.program?.application_fee)}
+                    </p>
+                  </Modal.Body>
+                  <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowSubmitModal(false)}>
+                      Cancel
+                    </Button>
+                    <Button 
+                      variant="success" 
+                      onClick={handleSubmitApplication}
+                      disabled={submitting}
+                    >
+                      {submitting ? (
+                        <>
+                          <Spinner animation="border" size="sm" className="me-2" />
+                          Submitting...
+                        </>
+                      ) : (
+                        'Confirm Submit'
+                      )}
+                    </Button>
+                  </Modal.Footer>
+                </Modal>
                 )}
               </div>
             </Card.Body>
