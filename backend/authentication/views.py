@@ -10,6 +10,9 @@ from .serializers import (
     UserSerializer,
     UserProfileSerializer
 )
+import logging
+
+logger = logging.getLogger(__name__)
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -33,8 +36,37 @@ class LoginView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
+        # Sanitize and log incoming payload (mask passwords)
+        try:
+            payload = dict(request.data)
+        except Exception:
+            payload = {}
+
+        if 'password' in payload:
+            payload['password'] = '***'
+        # In case of DRF parsing lists
+        if isinstance(payload.get('password'), (list, tuple)):
+            payload['password'] = ['***']
+
+        logger.info(
+            "Auth login attempt path=%s origin=%s content_type=%s payload_keys=%s",
+            request.path,
+            request.META.get('HTTP_ORIGIN'),
+            request.META.get('CONTENT_TYPE'),
+            list(payload.keys()),
+        )
+
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception:
+            # Log serializer errors for debugging (do not include raw password)
+            logger.warning(
+                "Auth login validation failed path=%s errors=%s",
+                request.path,
+                getattr(serializer, 'errors', {}),
+            )
+            raise
         user = serializer.validated_data['user']
         
         refresh = RefreshToken.for_user(user)
