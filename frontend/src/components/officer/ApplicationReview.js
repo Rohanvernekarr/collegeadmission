@@ -57,10 +57,18 @@ const ApplicationReview = () => {
 
   const handleDocumentVerification = async (documentId, verified, notes = '') => {
     try {
-      // This would need a new API endpoint for document verification
-      console.log('Document verification:', { documentId, verified, notes });
-      // await applicationService.verifyDocument(documentId, { verified, notes });
+      await applicationService.verifyDocument(documentId, { verified, notes });
+      // Refresh selected application details to reflect updated document status
+      if (selectedApplication?.id) {
+        try {
+          const fullApp = await applicationService.getApplication(selectedApplication.id);
+          setSelectedApplication(fullApp);
+        } catch {
+          // ignore; keep current state if refresh fails
+        }
+      }
       await fetchApplications();
+      setError(null);
     } catch (error) {
       setError('Failed to verify document');
     }

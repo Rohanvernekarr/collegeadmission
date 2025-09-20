@@ -1,21 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Container, Row, Col, Card, Button, Badge, Spinner, ListGroup } from "react-bootstrap";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../../store/authSlice";
 import applicationService from "../../services/applicationService";
 
 const Dashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const [loading, setLoading] = useState(false);
   const [apps, setApps] = useState([]);
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate("/login");
-  };
 
   const getRoleBadgeColor = (role) => {
     switch (role) {
@@ -98,7 +91,6 @@ const Dashboard = () => {
                 You are signed in as <Badge bg={getRoleBadgeColor(user?.role)}>{user?.role?.replace("_"," ").toUpperCase()}</Badge>
               </div>
             </div>
-            
           </div>
         </Card.Body>
       </Card>

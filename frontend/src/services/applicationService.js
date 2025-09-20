@@ -62,6 +62,12 @@ const applicationService = {
     return response.data;
   },
 
+  // Verify or reject a document (admin/officer only)
+  verifyDocument: async (documentId, payload) => {
+    const response = await api.post(`documents/${documentId}/verify/`, payload);
+    return response.data;
+  },
+
   // Check if current user has already applied to a program
   hasApplied: async (programId) => {
     const response = await api.get(`has-applied/${programId}/`);
