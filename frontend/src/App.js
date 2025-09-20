@@ -18,6 +18,7 @@ import ProgramDetail from "./components/programs/ProgramDetail";
 import ApplicationForm from "./components/applications/ApplicationForm";
 import ApplicationList from "./components/applications/ApplicationList";
 import ApplicationDetail from "./components/applications/ApplicationDetail";
+import ApplicationEdit from "./components/applications/ApplicationEdit";
 import DocumentUpload from "./components/applications/DocumentUpload";
 import ProgramManagement from "./components/admin/ProgramManagement";
 import DepartmentManagement from "./components/admin/DepartmentManagement";
@@ -74,6 +75,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ApplicationDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/applications/:applicationId/edit"
+              element={
+                <ProtectedRoute>
+                  <ApplicationEdit />
                 </ProtectedRoute>
               }
             />

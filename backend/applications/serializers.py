@@ -36,12 +36,18 @@ class ApplicationStatusHistorySerializer(serializers.ModelSerializer):
 
 class ApplicationSerializer(serializers.ModelSerializer):
     program = ProgramListSerializer(read_only=True)
-    program_id = serializers.IntegerField(write_only=True)
+    program_id = serializers.IntegerField(write_only=True, required=False)
     documents = ApplicationDocumentSerializer(many=True, read_only=True)
     status_history = ApplicationStatusHistorySerializer(many=True, read_only=True)
     application_number = serializers.ReadOnlyField()
     is_complete = serializers.ReadOnlyField()
     user_name = serializers.CharField(source='user.get_full_name', read_only=True)
+    phone = serializers.CharField(source='user.phone_number', read_only=True)
+    # Optional academic fields should not error when left blank in forms
+    twelfth_percentage = serializers.FloatField(required=False, allow_null=True)
+    twelfth_year = serializers.IntegerField(required=False, allow_null=True)
+    graduation_percentage = serializers.FloatField(required=False, allow_null=True)
+    graduation_year = serializers.IntegerField(required=False, allow_null=True)
     
     class Meta:
         model = Application
@@ -50,6 +56,14 @@ class ApplicationSerializer(serializers.ModelSerializer):
             'user', 'submitted_at', 'reviewed_by', 'review_notes', 
             'created_at', 'updated_at'
         ]
+
+    def to_internal_value(self, data):
+        # Coerce empty strings for optional numeric fields to None so DRF doesn't raise
+        data = data.copy()
+        for key in ['twelfth_percentage', 'twelfth_year', 'graduation_percentage', 'graduation_year']:
+            if key in data and data.get(key) == '':
+                data[key] = None
+        return super().to_internal_value(data)
 
     def validate_program_id(self, value):
         """Validate that program accepts applications"""

@@ -164,6 +164,7 @@ const ApplicationDetail = () => {
                   <p><strong>Name:</strong> {application?.user_name}</p>
                   <p><strong>Date of Birth:</strong> {application?.date_of_birth}</p>
                   <p><strong>Gender:</strong> {application?.gender?.toUpperCase()}</p>
+                  <p><strong>Phone No:</strong> {application?.phone}</p>
                   <p><strong>Nationality:</strong> {application?.nationality}</p>
                 </Col>
                 <Col md={6}>
