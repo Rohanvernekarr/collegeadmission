@@ -83,6 +83,37 @@ class ApplicationSubmitView(generics.UpdateAPIView):
         except Application.DoesNotExist:
             return Response({'error': 'Application not found'}, status=404)
 
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def verify_document(request, pk: int):
+    """Verify or reject an uploaded document (Admin/Officer only).
+    Expected payload: { "verified": true/false, "notes": "optional text" }
+    """
+    if request.user.role not in ['admin', 'admission_officer']:
+        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+        doc = ApplicationDocument.objects.select_related('application').get(pk=pk)
+    except ApplicationDocument.DoesNotExist:
+        return Response({'error': 'Document not found'}, status=404)
+
+    verified = request.data.get('verified')
+    notes = request.data.get('notes', '')
+
+    if isinstance(verified, str):
+        verified = verified.lower() in ['true', '1', 'yes']
+
+    if verified is None:
+        return Response({'verified': ['This field is required.']}, status=status.HTTP_400_BAD_REQUEST)
+
+    doc.verified = bool(verified)
+    doc.verification_notes = notes
+    doc.save(update_fields=['verified', 'verification_notes'])
+
+    # Return updated document data
+    serializer = ApplicationDocumentSerializer(doc, context={'request': request})
+    return Response(serializer.data)
+
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def has_applied(request, program_id: int):
