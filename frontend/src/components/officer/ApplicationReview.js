@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Table, Button, Badge, Modal, Form, Alert, Spinner, Tabs, Tab } from 'react-bootstrap';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +16,7 @@ const ApplicationReview = () => {
   const [statusUpdate, setStatusUpdate] = useState({ status: '', reason: '' });
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('pending');
-
+  
 
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
