@@ -119,11 +119,13 @@ const Dashboard = () => {
                 </Col>
                 <Col md={6}>
                   <div className="mb-2"><strong>Phone:</strong> {user?.phone_number || "Not provided"}</div>
-                  <div className="mb-2"><strong>Status:</strong> {" "}
-                    <Badge bg={user?.is_verified ? "success" : "warning"}>
-                      {user?.is_verified ? "Verified" : "Pending Verification"}
-                    </Badge>
-                  </div>
+                  {user?.role === "applicant" && (
+                    <div className="mb-2"><strong>Status:</strong> {" "}
+                      <Badge bg={user?.is_verified ? "success" : "warning"}>
+                        {user?.is_verified ? "Verified" : "Pending Verification"}
+                      </Badge>
+                    </div>
+                  )}
                 </Col>
               </Row>
             </Card.Body>

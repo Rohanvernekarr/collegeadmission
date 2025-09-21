@@ -10,8 +10,11 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [filter, setFilter] = useState('all');
   
   const [formData, setFormData] = useState({
@@ -152,6 +155,28 @@ const UserManagement = () => {
     }
   };
 
+  const handleDeleteUser = (user) => {
+    setUserToDelete(user);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    setDeleting(true);
+    try {
+      await adminService.deleteUser(userToDelete.id);
+      setShowDeleteModal(false);
+      setUserToDelete(null);
+      await fetchData();
+      setError(null);
+    } catch (error) {
+      setError('Failed to delete user');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const getRoleBadge = (role) => {
     const roleConfig = {
       'admin': { bg: 'danger', text: 'Admin' },
@@ -249,6 +274,7 @@ const UserManagement = () => {
             users={filteredUsers}
             onEdit={handleEditUser}
             onToggleStatus={handleToggleUserStatus}
+            onDelete={handleDeleteUser}
             getRoleBadge={getRoleBadge}
           />
         </Tab>
@@ -257,6 +283,7 @@ const UserManagement = () => {
             users={filteredUsers}
             onEdit={handleEditUser}
             onToggleStatus={handleToggleUserStatus}
+            onDelete={handleDeleteUser}
             getRoleBadge={getRoleBadge}
           />
         </Tab>
@@ -265,6 +292,7 @@ const UserManagement = () => {
             users={filteredUsers}
             onEdit={handleEditUser}
             onToggleStatus={handleToggleUserStatus}
+            onDelete={handleDeleteUser}
             getRoleBadge={getRoleBadge}
           />
         </Tab>
@@ -273,6 +301,7 @@ const UserManagement = () => {
             users={filteredUsers}
             onEdit={handleEditUser}
             onToggleStatus={handleToggleUserStatus}
+            onDelete={handleDeleteUser}
             getRoleBadge={getRoleBadge}
           />
         </Tab>
@@ -398,15 +427,7 @@ const UserManagement = () => {
               </Col>
             </Row>
 
-            <Form.Group className="mb-3">
-              <Form.Check
-                type="checkbox"
-                name="is_active"
-                checked={formData.is_active}
-                onChange={handleInputChange}
-                label="Active User"
-              />
-            </Form.Group>
+           
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={() => setShowModal(false)}>
@@ -425,12 +446,47 @@ const UserManagement = () => {
           </Modal.Footer>
         </Form>
       </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Delete User</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Are you sure you want to permanently delete this user?</p>
+          {userToDelete && (
+            <div className="alert alert-warning">
+              <strong>{userToDelete.first_name} {userToDelete.last_name}</strong> (@{userToDelete.username})
+              <br />
+              <small>{userToDelete.email}</small>
+            </div>
+          )}
+          <p className="text-danger">
+            <strong>Warning:</strong> This action cannot be undone. All user data will be permanently removed.
+          </p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={confirmDeleteUser} disabled={deleting}>
+            {deleting ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-2" />
+                Deleting...
+              </>
+            ) : (
+              'Delete User'
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };
 
 // User Table Component
-const UserTable = ({ users, onEdit, onToggleStatus, getRoleBadge }) => (
+const UserTable = ({ users, onEdit, onToggleStatus, onDelete, getRoleBadge }) => (
   <Card>
     <Card.Body className="p-0">
       <Table responsive hover className="mb-0">
@@ -440,7 +496,7 @@ const UserTable = ({ users, onEdit, onToggleStatus, getRoleBadge }) => (
             <th>Email</th>
             <th>Phone</th>
             <th>Role</th>
-            <th>Status</th>
+            
             <th>Created</th>
             <th>Actions</th>
           </tr>
@@ -457,11 +513,7 @@ const UserTable = ({ users, onEdit, onToggleStatus, getRoleBadge }) => (
               <td>{user.email}</td>
               <td>{user.phone_number || 'N/A'}</td>
               <td>{getRoleBadge(user.role)}</td>
-              <td>
-                <Badge bg={user.is_active ? 'success' : 'danger'}>
-                  {user.is_active ? 'Active' : 'Inactive'}
-                </Badge>
-              </td>
+             
               <td>
                 <div className="small text-muted">
                   {new Date(user.created_at).toLocaleDateString()}
@@ -477,11 +529,11 @@ const UserTable = ({ users, onEdit, onToggleStatus, getRoleBadge }) => (
                     Edit
                   </Button>
                   <Button
-                    variant={user.is_active ? 'outline-danger' : 'outline-success'}
+                    variant="outline-danger"
                     size="sm"
-                    onClick={() => onToggleStatus(user.id)}
+                    onClick={() => onDelete(user)}
                   >
-                    {user.is_active ? 'Deactivate' : 'Activate'}
+                    Delete
                   </Button>
                 </div>
               </td>

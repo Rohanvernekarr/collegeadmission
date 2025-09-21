@@ -38,7 +38,7 @@ const ProgramManagement = () => {
     eligibility_criteria: '',
     application_start_date: '',
     application_end_date: '',
-    status: 'active'
+   
   });
 
   const { user } = useSelector((state) => state.auth);
@@ -423,7 +423,8 @@ const ProgramManagement = () => {
                 <th>Duration</th>
                 <th>Capacity</th>
                 <th>Fees</th>
-                <th>Status</th>
+               
+
                 <th>Actions</th>
               </tr>
             </thead>
@@ -453,9 +454,7 @@ const ProgramManagement = () => {
                   <td>
                     ₹{program.fees_per_semester?.toLocaleString()}/sem
                   </td>
-                  <td>
-                    {getStatusBadge(program.status)}
-                  </td>
+                  
                   <td>
                     <div className="d-flex gap-1">
                     <Button
@@ -743,21 +742,7 @@ const ProgramManagement = () => {
                   />
                 </Form.Group>
               </Col>
-              <Col md={4}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Status *</Form.Label>
-                  <Form.Select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="closed">Closed</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
+             
             </Row>
 
             {/* Document Requirements Section */}

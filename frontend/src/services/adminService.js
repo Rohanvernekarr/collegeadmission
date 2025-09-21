@@ -41,6 +41,11 @@ const adminService = {
     return response.data;
   },
 
+  deleteUser: async (id) => {
+    const response = await api.delete(`auth/admin/users/${id}/`);
+    return response.data;
+  },
+
   toggleUserStatus: async (id) => {
     const response = await api.post(`auth/admin/users/${id}/toggle-status/`);
     return response.data;

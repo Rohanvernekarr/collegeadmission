@@ -36,7 +36,7 @@ class UserListView(generics.ListAPIView):
         
         return queryset
 
-class UserDetailView(generics.RetrieveUpdateAPIView):
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
     queryset = User.objects.all()
@@ -46,6 +46,19 @@ class UserDetailView(generics.RetrieveUpdateAPIView):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Only administrators can manage users")
         return super().get_queryset()
+    
+    def perform_destroy(self, instance):
+        """Delete user - only admins can delete users"""
+        if self.request.user.role != 'admin':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only administrators can delete users")
+        
+        # Prevent admin from deleting themselves
+        if instance.id == self.request.user.id:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError("You cannot delete your own account")
+        
+        instance.delete()
 
 class CreateUserView(generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
