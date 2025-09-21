@@ -10,6 +10,7 @@ import { store } from "./store/store";
 import NavigationBar from "./components/common/NavigationBar";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
+import VerifyEmail from "./components/auth/VerifyEmail";
 import AdminLogin from "./components/auth/AdminLogin";
 import OfficerLogin from "./components/auth/OfficerLogin";
 import Dashboard from "./components/dashboard/Dashboard";
@@ -42,6 +43,7 @@ function App() {
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/officer/login" element={<OfficerLogin />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/programs" element={<ProgramList />} />
             <Route path="/programs/:id" element={<ProgramDetail />} />
 

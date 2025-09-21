@@ -16,7 +16,7 @@ const OfficerLogin = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/officer/dashboard');
+      navigate('/dashboard');
     }
     return () => {
       dispatch(clearError());

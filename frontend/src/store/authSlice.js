@@ -24,6 +24,28 @@ export const register = createAsyncThunk(
   }
 );
 
+export const verifyEmail = createAsyncThunk(
+  'auth/verifyEmail',
+  async ({ email, otp }, { rejectWithValue }) => {
+    try {
+      return await authService.verifyEmail({ email, otp });
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Verification failed');
+    }
+  }
+);
+
+export const resendOtp = createAsyncThunk(
+  'auth/resendOtp',
+  async (email, { rejectWithValue }) => {
+    try {
+      return await authService.resendOtp({ email });
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Resend failed');
+    }
+  }
+);
+
 export const logout = createAsyncThunk('auth/logout', async () => {
   await authService.logout();
   localStorage.removeItem('access_token');
@@ -36,6 +58,13 @@ const authSlice = createSlice({
     isAuthenticated: authService.isAuthenticated(),
     loading: false,
     error: null,
+    verification: {
+      loading: false,
+      resendLoading: false,
+      success: false,
+      error: null,
+      email: null,
+    },
   },
   reducers: {
     clearError: (state) => {
@@ -85,6 +114,35 @@ const authSlice = createSlice({
         // Even if server logout fails, clear client auth state
         state.user = null;
         state.isAuthenticated = false;
+      });
+
+    // Verify email
+    builder
+      .addCase(verifyEmail.pending, (state) => {
+        state.verification.loading = true;
+        state.verification.error = null;
+      })
+      .addCase(verifyEmail.fulfilled, (state, action) => {
+        state.verification.loading = false;
+        state.verification.success = true;
+        state.verification.email = action.meta.arg.email;
+      })
+      .addCase(verifyEmail.rejected, (state, action) => {
+        state.verification.loading = false;
+        state.verification.error = action.payload || action.error?.message;
+      })
+      // Resend OTP
+      .addCase(resendOtp.pending, (state) => {
+        state.verification.resendLoading = true;
+        state.verification.error = null;
+      })
+      .addCase(resendOtp.fulfilled, (state, action) => {
+        state.verification.resendLoading = false;
+        state.verification.email = action.meta.arg;
+      })
+      .addCase(resendOtp.rejected, (state, action) => {
+        state.verification.resendLoading = false;
+        state.verification.error = action.payload || action.error?.message;
       });
   },
 });

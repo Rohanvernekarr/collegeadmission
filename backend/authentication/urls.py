@@ -5,6 +5,8 @@ from . import views, admin_views
 urlpatterns = [
     path('register/', views.RegisterView.as_view(), name='register'),
     path('login/', views.LoginView.as_view(), name='login'),
+    path('verify-email/', views.VerifyEmailView.as_view(), name='verify-email'),
+    path('resend-otp/', views.ResendOtpView.as_view(), name='resend-otp'),
     path('admin/login/', views.AdminLoginView.as_view(), name='admin-login'),
     path('officer/login/', views.OfficerLoginView.as_view(), name='officer-login'),
     path('profile/', views.ProfileView.as_view(), name='profile'),

@@ -16,7 +16,7 @@ const AdminLogin = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/admin/dashboard');
+      navigate('/dashboard');
     }
     return () => {
       dispatch(clearError());

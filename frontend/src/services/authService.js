@@ -61,12 +61,34 @@ const authService = {
   },
 
   login: async (credentials) => {
-    const response = await api.post('login/', credentials);
+    // If a role is provided in credentials, route to the role-specific login endpoint
+    // Backend exposes: admin/login/ and officer/login/ plus general login/
+    let endpoint = 'login/';
+    if (credentials && credentials.role) {
+      const role = String(credentials.role).toLowerCase();
+      if (role === 'admin' || role === 'administrator') endpoint = 'admin/login/';
+      if (role === 'officer' || role === 'admission_officer') endpoint = 'officer/login/';
+      // Remove role before sending payload to avoid backend confusion
+      credentials = { ...credentials };
+      delete credentials.role;
+    }
+
+    const response = await api.post(endpoint, credentials);
     if (response.data.access) {
       localStorage.setItem('access_token', response.data.access);
       localStorage.setItem('refresh_token', response.data.refresh);
       localStorage.setItem('user', JSON.stringify(response.data.user));
     }
+    return response.data;
+  },
+
+  verifyEmail: async ({ email, otp }) => {
+    const response = await api.post('verify-email/', { email, otp });
+    return response.data;
+  },
+
+  resendOtp: async ({ email }) => {
+    const response = await api.post('resend-otp/', { email });
     return response.data;
   },
 

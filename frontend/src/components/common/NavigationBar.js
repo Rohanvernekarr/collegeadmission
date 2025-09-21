@@ -101,6 +101,12 @@ const NavigationBar = () => {
                 <LinkContainer to="/login">
                   <Nav.Link>Login</Nav.Link>
                 </LinkContainer>
+                <LinkContainer to="/admin/login">
+                  <Nav.Link>Admin Login</Nav.Link>
+                </LinkContainer>
+                <LinkContainer to="/officer/login">
+                  <Nav.Link>Officer Login</Nav.Link>
+                </LinkContainer>
                 <LinkContainer to="/register">
                   <Nav.Link>Register</Nav.Link>
                 </LinkContainer>

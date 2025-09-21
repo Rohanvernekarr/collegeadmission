@@ -195,3 +195,9 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
 AUTH_USER_MODEL = 'authentication.User'
+
+# OTP and frontend/email defaults
+OTP_EXPIRY_MINUTES = config('OTP_EXPIRY_MINUTES', default=15, cast=int)
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+# Password reset timeout in seconds (default 24 hours)
+PASSWORD_RESET_TIMEOUT = config('PASSWORD_RESET_TIMEOUT', default=24*3600, cast=int)

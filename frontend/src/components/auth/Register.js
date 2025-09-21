@@ -41,7 +41,18 @@ const Register = () => {
       alert("Passwords don't match!");
       return;
     }
-    dispatch(register({ ...formData, role: 'applicant' }));
+    // Dispatch and then redirect to verification page
+    dispatch(register({ ...formData, role: 'applicant' }))
+      .unwrap()
+      .then((res) => {
+        // Save email for verification flow
+        localStorage.setItem('verificationEmail', formData.email);
+        // Redirect to verify email page
+        navigate('/verify-email');
+      })
+      .catch(() => {
+        // errors are handled by the slice
+      });
   };
 
   return (
