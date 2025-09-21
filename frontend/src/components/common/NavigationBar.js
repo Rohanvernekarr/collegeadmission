@@ -1,12 +1,28 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navbar, Nav, NavDropdown, Container, Badge } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
-import { useSelector} from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchMessagingStats } from '../../store/messagingSlice';
 
 import LogoutButton from './LogoutButton';
 
 const NavigationBar = () => {
+  const dispatch = useDispatch();
   const { user, isAuthenticated } = useSelector((state) => state.auth);
+  const { stats } = useSelector((state) => state.messaging);
+
+  useEffect(() => {
+    if (isAuthenticated && ['admission_officer', 'applicant'].includes(user?.role)) {
+      dispatch(fetchMessagingStats());
+      
+      // Poll for updates every 30 seconds
+      const interval = setInterval(() => {
+        dispatch(fetchMessagingStats());
+      }, 30000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [dispatch, isAuthenticated, user?.role]);
   
   const getRoleColor = (role) => {
     switch (role) {
@@ -46,6 +62,19 @@ const NavigationBar = () => {
                 {user?.role === 'applicant' && (
                   <LinkContainer to="/applications">
                     <Nav.Link>My Applications</Nav.Link>
+                  </LinkContainer>
+                )}
+
+                {['admission_officer', 'applicant'].includes(user?.role) && (
+                  <LinkContainer to="/messages">
+                    <Nav.Link>
+                      Messages
+                      {stats?.unread_messages > 0 && (
+                        <Badge bg="danger" className="ms-1">
+                          {stats.unread_messages}
+                        </Badge>
+                      )}
+                    </Nav.Link>
                   </LinkContainer>
                 )}
 

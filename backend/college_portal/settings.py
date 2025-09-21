@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'documents',
     'notifications',
     'dashboard',
+    'messaging',
 ]
 
 MIDDLEWARE = [

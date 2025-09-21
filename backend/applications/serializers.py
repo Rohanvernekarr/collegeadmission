@@ -42,7 +42,12 @@ class ApplicationSerializer(serializers.ModelSerializer):
     application_number = serializers.ReadOnlyField()
     is_complete = serializers.ReadOnlyField()
     user_name = serializers.CharField(source='user.get_full_name', read_only=True)
+    first_name = serializers.CharField(source='user.first_name', read_only=True)
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
+    user_email = serializers.CharField(source='user.email', read_only=True)
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
     phone = serializers.CharField(source='user.phone_number', read_only=True)
+    program_name = serializers.CharField(source='program.name', read_only=True)
     # Optional academic fields should not error when left blank in forms
     twelfth_percentage = serializers.FloatField(required=False, allow_null=True)
     twelfth_year = serializers.IntegerField(required=False, allow_null=True)

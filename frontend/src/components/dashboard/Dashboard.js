@@ -1,11 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Container, Row, Col, Card, Button, Badge, Spinner, ListGroup } from "react-bootstrap";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import applicationService from "../../services/applicationService";
+import { fetchMessagingStats, fetchConversations } from "../../store/messagingSlice";
 
 const Dashboard = () => {
+  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { stats: messagingStats, conversations } = useSelector((state) => state.messaging);
   const [loading, setLoading] = useState(false);
   const [apps, setApps] = useState([]);
   const navigate = useNavigate();
@@ -37,7 +40,13 @@ const Dashboard = () => {
       }
     };
     fetch();
-  }, []);
+
+    // Fetch messaging data for applicants and officers
+    if (user && ['applicant', 'admission_officer'].includes(user.role)) {
+      dispatch(fetchMessagingStats());
+      dispatch(fetchConversations());
+    }
+  }, [dispatch, user]);
 
   const stats = useMemo(() => {
     const s = {
@@ -170,6 +179,14 @@ const Dashboard = () => {
                 <div className="d-grid gap-2">
                   <Button variant="primary" onClick={() => navigate("/programs")}>Browse Programs</Button>
                   <Button variant="success" onClick={() => navigate("/applications")}>My Applications</Button>
+                  <Button variant="info" onClick={() => navigate("/messages")}>
+                    Messages
+                    {messagingStats?.unread_messages > 0 && (
+                      <Badge bg="danger" className="ms-2">
+                        {messagingStats.unread_messages}
+                      </Badge>
+                    )}
+                  </Button>
                   <Button variant="outline-secondary" onClick={() => navigate("/dashboard")}>
                     Profile Settings
                   </Button>
@@ -190,6 +207,78 @@ const Dashboard = () => {
               )}
             </Card.Body>
           </Card>
+
+          {/* Messages Section for Applicants */}
+          {user?.role === "applicant" && (
+            <Card className="border-0 shadow-sm mb-4">
+              <Card.Body>
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <Card.Title className="mb-0">
+                    Recent Messages
+                    {messagingStats?.unread_messages > 0 && (
+                      <Badge bg="danger" className="ms-2">
+                        {messagingStats.unread_messages} unread
+                      </Badge>
+                    )}
+                  </Card.Title>
+                  <Button size="sm" variant="outline-primary" onClick={() => navigate("/messages")}>
+                    View All
+                  </Button>
+                </div>
+                
+                {conversations && conversations.length > 0 ? (
+                  <ListGroup variant="flush">
+                    {conversations.slice(0, 3).map((conversation) => (
+                      <ListGroup.Item 
+                        key={conversation.id} 
+                        className="px-0 py-2 border-0"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => navigate("/messages")}
+                      >
+                        <div className="d-flex justify-content-between align-items-start">
+                          <div className="flex-grow-1">
+                            <div className="d-flex justify-content-between align-items-center">
+                              <h6 className="mb-1 fw-semibold">
+                                {conversation.officer?.first_name} {conversation.officer?.last_name}
+                              </h6>
+                              <small className="text-muted">
+                                {conversation.last_message && 
+                                  new Date(conversation.last_message.sent_at).toLocaleDateString()
+                                }
+                              </small>
+                            </div>
+                            <p className="mb-1 small text-muted">
+                              {conversation.last_message?.content?.length > 50 
+                                ? conversation.last_message.content.substring(0, 50) + '...'
+                                : conversation.last_message?.content || 'No messages yet'
+                              }
+                            </p>
+                            <div className="d-flex justify-content-between align-items-center">
+                              <small className="text-muted">
+                                <i className="bi bi-person-badge me-1"></i>
+                                Admission Officer
+                              </small>
+                              {conversation.unread_count > 0 && (
+                                <Badge bg="primary" pill>
+                                  {conversation.unread_count}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </ListGroup.Item>
+                    ))}
+                  </ListGroup>
+                ) : (
+                  <div className="text-center text-muted py-3">
+                    <i className="bi bi-chat-dots fs-4 mb-2"></i>
+                    <p className="mb-0">No messages yet</p>
+                    <small>Officers will contact you about your applications</small>
+                  </div>
+                )}
+              </Card.Body>
+            </Card>
+          )}
 
           <Card className="border-0 shadow-sm">
             <Card.Body>

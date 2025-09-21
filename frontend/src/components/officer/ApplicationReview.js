@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import applicationService from '../../services/applicationService';
 
+
 const ApplicationReview = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,6 +16,7 @@ const ApplicationReview = () => {
   const [statusUpdate, setStatusUpdate] = useState({ status: '', reason: '' });
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('pending');
+
 
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
@@ -243,6 +245,7 @@ const ApplicationReview = () => {
                           >
                             Documents
                           </Button>
+                          
                         </div>
                       </td>
                     </tr>
@@ -317,6 +320,7 @@ const ApplicationReview = () => {
                           >
                             Revise
                           </Button>
+                         
                         </div>
                       </td>
                     </tr>
@@ -529,6 +533,8 @@ const ApplicationReview = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+     
     </Container>
   );
 };

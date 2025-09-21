@@ -24,6 +24,7 @@ import DocumentUpload from "./components/applications/DocumentUpload";
 import ProgramManagement from "./components/admin/ProgramManagement";
 import DepartmentManagement from "./components/admin/DepartmentManagement";
 import ApplicationReview from "./components/officer/ApplicationReview";
+import Messages from "./components/messaging/Messages";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import UserManagement from "./components/admin/UserManagement";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -101,6 +102,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <DocumentUpload />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/messages"
+              element={
+                <ProtectedRoute>
+                  <Messages />
                 </ProtectedRoute>
               }
             />
