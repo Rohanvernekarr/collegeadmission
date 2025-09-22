@@ -27,6 +27,7 @@ import ApplicationReview from "./components/officer/ApplicationReview";
 import Messages from "./components/messaging/Messages";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import UserManagement from "./components/admin/UserManagement";
+import SimpleFooter from "./components/common/Footer";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 import ToastProvider from "./components/ui/ToastProvider";
@@ -140,6 +141,7 @@ function App() {
               }
             />
             </Routes>
+            <SimpleFooter/>
           </div>
         </ToastProvider>
       </Router>
