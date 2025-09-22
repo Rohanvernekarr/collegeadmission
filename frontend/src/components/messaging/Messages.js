@@ -102,6 +102,7 @@ const Messages = () => {
               selectedConversation={selectedConversation}
               onSelectConversation={handleConversationSelect}
               loading={loading}
+              currentUser={user}
             />
           </Card>
         </Col>

@@ -5,9 +5,10 @@ import resend
 from django.template.loader import render_to_string
 from django.utils import timezone
 from datetime import timedelta
+import os
 
+resend.api_key= os.getenv("RESEND_API_KE")
 # Initialize Resend client
-resend.api_key = "re_Z8vm6iP8_8PB2janahc5r1YsxBNzu3MCu"
 
 def generate_otp(length=6):
     """Generate a random numeric OTP of given length."""

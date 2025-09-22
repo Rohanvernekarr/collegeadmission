@@ -2,7 +2,7 @@ import React from 'react';
 import { ListGroup, Badge, Spinner } from 'react-bootstrap';
 import { formatDistanceToNow } from 'date-fns';
 
-const ConversationList = ({ conversations, selectedConversation, onSelectConversation, loading }) => {
+const ConversationList = ({ conversations, selectedConversation, onSelectConversation, loading, currentUser }) => {
   const formatTime = (dateString) => {
     try {
       return formatDistanceToNow(new Date(dateString), { addSuffix: true });
@@ -36,9 +36,25 @@ const ConversationList = ({ conversations, selectedConversation, onSelectConvers
   return (
     <ListGroup variant="flush" style={{ maxHeight: 'calc(100vh - 300px)', overflowY: 'auto' }}>
       {conversations.map((conversation) => {
-        const otherUser = conversation.officer?.id !== conversation.applicant?.id 
-          ? (conversation.officer || conversation.applicant)
-          : conversation.applicant;
+        // Determine the "other" participant relative to the current user.
+        let otherUser = null;
+        try {
+          if (currentUser && conversation) {
+            // If current user is the officer, show the applicant; otherwise show the officer
+            if (currentUser.id === conversation.officer?.id) {
+              otherUser = conversation.applicant || conversation.officer;
+            } else if (currentUser.id === conversation.applicant?.id) {
+              otherUser = conversation.officer || conversation.applicant;
+            } else {
+              // Fallback: pick the non-null participant
+              otherUser = conversation.applicant || conversation.officer;
+            }
+          } else {
+            otherUser = conversation.applicant || conversation.officer;
+          }
+        } catch (e) {
+          otherUser = conversation.applicant || conversation.officer;
+        }
         
         return (
           <ListGroup.Item
