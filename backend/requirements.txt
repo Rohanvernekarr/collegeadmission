@@ -7,3 +7,4 @@ django-filter>=23.5
 gunicorn>=21.2.0
 whitenoise>=6.6.0
 psycopg2-binary>=2.9.9  # For PostgreSQL support
+resend>=0.11.0  # For sending emails
